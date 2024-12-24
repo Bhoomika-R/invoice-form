@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import LoginForm from './components/LoginForm';
+import Home from './createInvoice/pages/LoginPage';
 import InvoiceForm from './components/InvoiceForm';
 
 function PrivateRoute({ children }) {
@@ -13,7 +13,7 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          <Route path="/login" element={<LoginForm />} />
+          <Route path="/login" element={<Home />} />
           <Route
             path="/invoice"
             element={

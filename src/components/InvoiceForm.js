@@ -1,304 +1,416 @@
-'use client'
-
-import { Formik, Form, Field } from 'formik'
+import { useEffect, useState } from 'react'
+import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { useAuth } from '../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
-import { Card, CardContent } from './ui/card'
-import { Button } from './ui/button'
-import { Input } from './ui/input'
-import { Label } from './ui/label'
-import { Textarea } from './ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { ChevronLeft, Upload } from 'lucide-react'
+import { ChevronLeft, Plus } from 'lucide-react'
+import { Button } from '../components/ui/button'
+import { Input } from '../components/ui/input'
+import { Textarea } from '../components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import FileUpload from '../createInvoice/pages/FileUpload'
+import iconContainer from '../assets/images/IconContainer.png'
+import iconContainer1 from '../assets/images/IconContainer1.png'
+import iconContainer2 from '../assets/images/IconContainer2.png'
 
-const invoiceSchema = Yup.object().shape({
+const validationSchema = Yup.object({
   vendor: Yup.string().required('Vendor is required'),
-  purchaseOrderNumber: Yup.string().required('Purchase Order Number is required'),
+  purchaseOrder: Yup.string().required('Purchase Order is required'),
   invoiceNumber: Yup.string().required('Invoice Number is required'),
   invoiceDate: Yup.date().required('Invoice Date is required'),
   totalAmount: Yup.number().required('Total Amount is required').positive(),
   paymentTerms: Yup.string().required('Payment Terms are required'),
   dueDate: Yup.date().required('Due Date is required'),
-  description: Yup.string().required('Description is required'),
+  glPostDate: Yup.date().required('GL Post Date is required'),
+  description: Yup.string(),
+  lineAmount: Yup.number().required('Line Amount is required').positive(),
+  department: Yup.string().required('Department is required'),
+  account: Yup.string().required('Account is required'),
+  location: Yup.string().required('Location is required'),
+  expenseDescription: Yup.string().required('Expense Description is required'),
+  comments: Yup.string(),
 })
 
-export default function InvoiceForm() {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
+export default function InvoiceForm({ onLogout }) {
+  const [activeTab, setActiveTab] = useState('vendor')
 
-  const initialValues = JSON.parse(localStorage.getItem('invoiceData') || 'null') || {
-    vendor: '',
-    purchaseOrderNumber: '',
-    invoiceNumber: '',
-    invoiceDate: '',
-    totalAmount: '',
-    paymentTerms: '',
-    dueDate: '',
-    description: '',
-    expenseDetails: [{
+  const formik = useFormik({
+    initialValues: {
+      vendor: '',
+      purchaseOrder: '',
+      invoiceNumber: '',
+      invoiceDate: '',
+      totalAmount: '',
+      paymentTerms: '',
+      dueDate: '',
+      glPostDate: '',
+      description: '',
       lineAmount: '',
       department: '',
       account: '',
       location: '',
-      description: '',
-    }],
-    comments: '',
-  }
+      expenseDescription: '',
+      comments: '',
+    },
+    validationSchema,
+    onSubmit: (values) => {
+      localStorage.setItem('invoiceData', JSON.stringify(values))
+      alert('Form submitted successfully!')
+    },
+  })
+
+  useEffect(() => {
+    const savedData = localStorage.getItem('invoiceData')
+    if (savedData) {
+      formik.setValues(JSON.parse(savedData))
+    }
+  }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center h-16">
-            <button
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Create New Invoice
-            </button>
+    <div className="min-h-screen bg-background">
+      <div className="border-b">
+        <div className="container flex items-center justify-between gap-4 h-14">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" className="h-8 w-8">
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-lg font-bold">Create New Invoice</h1>
           </div>
+          <Button onClick={onLogout} className='submit'>Logout</Button>
         </div>
-      </header>
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Tabs defaultValue="vendor-details" className="space-y-6">
-          <TabsList className="bg-white border-b w-full justify-start rounded-none h-auto p-0 space-x-8">
-            <TabsTrigger
-              value="vendor-details"
-              className="data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-0 pb-4"
-            >
-              Vendor Details
-            </TabsTrigger>
-            <TabsTrigger
-              value="invoice-details"
-              className="data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-0 pb-4"
-            >
-              Invoice Details
-            </TabsTrigger>
-            <TabsTrigger
-              value="comments"
-              className="data-[state=active]:border-primary data-[state=active]:shadow-none rounded-none border-b-2 border-transparent px-0 pb-4"
-            >
-              Comments
-            </TabsTrigger>
-          </TabsList>
+      <div className="container py-6">
+        <div className="flex gap-6">
+          <div className="w-[600px]">
+            <FileUpload />
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <Card className="border-dashed">
-              <CardContent className="flex flex-col items-center justify-center space-y-4 p-8">
-                <div className="h-24 w-24 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Upload className="h-12 w-12 text-blue-600" />
-                </div>
-                <div className="text-center">
-                  <h3 className="font-semibold text-lg">Upload Your Invoice</h3>
-                  <p className="text-sm text-gray-500 mt-1">To auto-populate fields and save time</p>
-                </div>
-                <div className="text-center">
-                  <Button variant="outline" className="mt-2">
-                    Upload File
-                  </Button>
-                  <p className="text-sm text-gray-500 mt-2">or Drag and drop</p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="flex-1">
+            <form onSubmit={formik.handleSubmit} className="space-y-8">
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="vendor" className={`font-medium ${activeTab === 'vendor' ? 'text-color' : ''} ${activeTab === 'vendor' ? 'border-bottom-active' : ''}`}>Vendor Details</TabsTrigger>
+                  <TabsTrigger value="invoice" className={`font-medium ${activeTab === 'invoice' ? 'text-color' : ''} ${activeTab === 'invoice' ? 'border-bottom-active' : ''}`}>Invoice Details</TabsTrigger>
+                  <TabsTrigger value="comments" className={`font-medium ${activeTab === 'comments' ? 'text-color' : ''} ${activeTab === 'comments' ? 'border-bottom-active' : ''}`}>Comments</TabsTrigger>
+                </TabsList>
 
-            <Formik
-              initialValues={initialValues}
-              validationSchema={invoiceSchema}
-              onSubmit={(values, { setSubmitting }) => {
-                localStorage.setItem('invoiceData', JSON.stringify(values))
-                setSubmitting(false)
-              }}
-            >
-              {({ errors, touched, values }) => (
-                <Form className="space-y-6">
-                  <TabsContent value="vendor-details" className="m-0">
-                    <Card>
-                      <CardContent className="space-y-4 p-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="vendor">Vendor *</Label>
-                          <Select>
+                <TabsContent value="vendor">
+                  <section>
+                    <div className='flex gap-2 items-center'>
+                      <img src={iconContainer} />
+                      <p className="text-lg font-bold">Vendor Details</p>
+                    </div>
+                    <div className='flex flex-col gap-4'>
+                      <div className='mt-4'>
+                        <h3 className="text-sm font-bold">Vendor Information</h3>
+                      </div>
+                      <div className="space-y-6">
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Vendor <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Select
+                            name="vendor"
+                            value={formik.values.vendor}
+                            onValueChange={(value) => formik.setFieldValue('vendor', value)}
+                          >
                             <SelectTrigger>
-                              <SelectValue placeholder="Select Vendor" />
+                              <SelectValue placeholder="Select vendor" className='border-color' />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="1">1-3 Hemispheres</SelectItem>
-                              <SelectItem value="2">Other Vendors</SelectItem>
+                              <SelectItem value="A - 1 Exterminators">A - 1 Exterminators</SelectItem>
                             </SelectContent>
                           </Select>
+                          {formik.touched.vendor && formik.errors.vendor && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.vendor}</div>
+                          )}
                         </div>
-                        <div className="text-sm">
-                          <p>250 Main St. Lynn</p>
-                          <button className="text-blue-600 hover:underline mt-2">
-                            + View Vendor Details
-                          </button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                      </div>
+                    </div>
+                  </section>
 
-                  <TabsContent value="invoice-details" className="m-0">
-                    <Card>
-                      <CardContent className="space-y-6 p-6">
+
+                </TabsContent>
+
+                <TabsContent value="invoice">
+                  <section>
+                    <div className='flex gap-2 items-center'>
+                      <img src={iconContainer1} />
+                      <p className="text-lg font-bold">Invoice Details</p>
+                    </div>
+                    <div className="grid gap-4">
+                      <div className='mt-4'>
+                        <h3 className="text-sm font-bold">General Information</h3>
+                      </div>
+                      <section className="mt-4">
                         <div className="space-y-4">
-                          <h3 className="text-lg font-medium">General Information</h3>
                           <div>
-                            <Label htmlFor="purchaseOrderNumber">Purchase Order Number *</Label>
-                            <Select>
+                            <label className="text-sm mb-1.5 block">
+                              Purchase Order Number <span className="text-destructive red-color">*</span>
+                            </label>
+                            <Select
+                              name="purchaseOrder"
+                              value={formik.values.purchaseOrder}
+                              onValueChange={(value) => formik.setFieldValue('purchaseOrder', value)}
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder="Select PO Number" />
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="po1">PO-001</SelectItem>
-                                <SelectItem value="po2">PO-002</SelectItem>
                               </SelectContent>
                             </Select>
+                            {formik.touched.purchaseOrder && formik.errors.purchaseOrder && (
+                              <div className="text-red-500 text-sm mt-1">{formik.errors.purchaseOrder}</div>
+                            )}
                           </div>
                         </div>
+                      </section>
+                      <div className='mt-4'>
+                        <h3 className="text-sm font-bold">Invoice Details</h3>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
 
-                        <div className="space-y-4">
-                          <h3 className="text-lg font-medium">Invoice Details</h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="invoiceNumber">Invoice Number *</Label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select Invoice" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="inv1">INV-001</SelectItem>
-                                  <SelectItem value="inv2">INV-002</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="invoiceDate">Invoice Date *</Label>
-                              <Input type="date" id="invoiceDate" />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="totalAmount">Total Amount *</Label>
-                              <div className="relative">
-                                <span className="absolute left-3 top-2.5">$</span>
-                                <Input type="number" id="totalAmount" className="pl-6" placeholder="0.00" />
-                                <span className="absolute right-3 top-2.5">USD</span>
-                              </div>
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="paymentTerms">Payment Terms *</Label>
-                              <Select>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="net30">Net 30</SelectItem>
-                                  <SelectItem value="net60">Net 60</SelectItem>
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-medium">Expense Details</h3>
-                            <div className="text-sm">
-                              <span>$ 0.00</span>
-                              <span className="mx-2">/</span>
-                              <span className="text-blue-600">$ 0.00</span>
-                            </div>
-                          </div>
-
-                          {values.expenseDetails.map((_, index) => (
-                            <div key={index} className="grid grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label>Line Amount *</Label>
-                                <div className="relative">
-                                  <span className="absolute left-3 top-2.5">$</span>
-                                  <Input className="pl-6" placeholder="0.00" />
-                                  <span className="absolute right-3 top-2.5">USD</span>
-                                </div>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Department *</Label>
-                                <Select>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select Department" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="dept1">Department 1</SelectItem>
-                                    <SelectItem value="dept2">Department 2</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Account *</Label>
-                                <Select>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select Account" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="acc1">Account 1</SelectItem>
-                                    <SelectItem value="acc2">Account 2</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="space-y-2">
-                                <Label>Location *</Label>
-                                <Select>
-                                  <SelectTrigger>
-                                    <SelectValue placeholder="Select Location" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="loc1">Location 1</SelectItem>
-                                    <SelectItem value="loc2">Location 2</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                              <div className="col-span-2">
-                                <Label>Description *</Label>
-                                <Input placeholder="Enter description" />
-                              </div>
-                            </div>
-                          ))}
-
-                          <Button variant="outline" className="w-full">
-                            + Add Expense Coding
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  <TabsContent value="comments" className="m-0">
-                    <Card>
-                      <CardContent className="p-6">
-                        <div className="space-y-2">
-                          <Label htmlFor="comments">Comments</Label>
-                          <Textarea
-                            placeholder="Add a comment and use @name to tag someone"
-                            className="min-h-[100px]"
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Invoice Number <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Input
+                            {...formik.getFieldProps('invoiceNumber')}
                           />
+                          {formik.touched.invoiceNumber && formik.errors.invoiceNumber && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.invoiceNumber}</div>
+                          )}
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Invoice Date <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Input type="date" {...formik.getFieldProps('invoiceDate')} />
+                          {formik.touched.invoiceDate && formik.errors.invoiceDate && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.invoiceDate}</div>
+                          )}
+                        </div>
+                      </div>
 
-                  <div className="flex justify-end space-x-4">
-                    <Button variant="outline">Save as Draft</Button>
-                    <Button type="submit">Submit & New</Button>
-                  </div>
-                </Form>
-              )}
-            </Formik>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Total Amount <span className="text-destructive red-color">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2.5">$</span>
+                            <Input
+                              type="number"
+                              className="pl-7"
+                              placeholder="0.00"
+                              {...formik.getFieldProps('totalAmount')}
+                            />
+                          </div>
+                          {formik.touched.totalAmount && formik.errors.totalAmount && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.totalAmount}</div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Payment Terms <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Select
+                            name="paymentTerms"
+                            value={formik.values.paymentTerms}
+                            onValueChange={(value) => formik.setFieldValue('paymentTerms', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select terms" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="net30">Net 30</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.paymentTerms && formik.errors.paymentTerms && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.paymentTerms}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Invoice Due Date <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Input type="date" {...formik.getFieldProps('dueDate')} />
+                          {formik.touched.dueDate && formik.errors.dueDate && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.dueDate}</div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            GL Post Date <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Input type="date" {...formik.getFieldProps('glPostDate')} />
+                          {formik.touched.glPostDate && formik.errors.glPostDate && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.glPostDate}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm mb-1.5 block">
+                          Invoice Description <span className="text-destructive red-color">*</span>
+                        </label>
+                        <Input {...formik.getFieldProps('description')} />
+                        {formik.touched.description && formik.errors.description && (
+                          <div className="text-red-500 text-sm mt-1">{formik.errors.description}</div>
+                        )}
+                      </div>
+                    </div>
+                  </section>
+
+                  <section className="mt-8">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-bold">Expense Details</h3>
+                      <div className="text-sm">
+                        <span>$0.00</span>
+                        <span className="mx-1">/</span>
+                        <span className="text-blue-600">$0.00</span>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Line Amount <span className="text-destructive red-color">*</span>
+                          </label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-2.5">$</span>
+                            <Input
+                              className="pl-7"
+                              placeholder="0.00"
+                              {...formik.getFieldProps('lineAmount')}
+                            />
+                          </div>
+                          {formik.touched.lineAmount && formik.errors.lineAmount && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.lineAmount}</div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Department <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Select
+                            name="department"
+                            value={formik.values.department}
+                            onValueChange={(value) => formik.setFieldValue('department', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Department" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="dept1">Department 1</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.department && formik.errors.department && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.department}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Account <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Select
+                            name="account"
+                            value={formik.values.account}
+                            onValueChange={(value) => formik.setFieldValue('account', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Account" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="acc1">Account 1</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.account && formik.errors.account && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.account}</div>
+                          )}
+                        </div>
+                        <div>
+                          <label className="text-sm mb-1.5 block">
+                            Location <span className="text-destructive red-color">*</span>
+                          </label>
+                          <Select
+                            name="location"
+                            value={formik.values.location}
+                            onValueChange={(value) => formik.setFieldValue('location', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select Location" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="loc1">Location 1</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {formik.touched.location && formik.errors.location && (
+                            <div className="text-red-500 text-sm mt-1">{formik.errors.location}</div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-sm mb-1.5 block">
+                          Description <span className="text-destructive red-color">*</span>
+                        </label>
+                        <Input {...formik.getFieldProps('expenseDescription')} />
+                        {formik.touched.expenseDescription && formik.errors.expenseDescription && (
+                          <div className="text-red-500 text-sm mt-1">{formik.errors.expenseDescription}</div>
+                        )}
+                      </div>
+
+                      <Button variant="outline" className="w-full">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Expense Coding
+                      </Button>
+                    </div>
+                  </section>
+                </TabsContent>
+
+                <TabsContent value="comments">
+                  <section>
+                  <div className='flex gap-2 items-center'>
+                      <img src={iconContainer2} />
+                      <p className="text-lg font-bold">Comments</p>
+                    </div>
+                    <Textarea
+                      placeholder="Add a comment and use @name to tag someone"
+                      className="min-h-[120px] mt-2"
+                      {...formik.getFieldProps('comments')}
+                    />
+                    {formik.touched.comments && formik.errors.comments && (
+                      <div className="text-red-500 text-sm mt-1">{formik.errors.comments}</div>
+                    )}
+                  </section>
+                </TabsContent>
+              </Tabs>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <Button variant="outline" type="button" className="border-color" onClick={() => formik.resetForm()}>
+                  Save as Draft
+                </Button>
+                <Button type="submit" className="submit">Submit & New</Button>
+              </div>
+            </form>
           </div>
-        </Tabs>
-      </main>
+        </div>
+      </div>
     </div>
   )
 }
