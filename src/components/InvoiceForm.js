@@ -124,7 +124,7 @@ export default function InvoiceForm({ onLogout }) {
                               <SelectValue placeholder="Select vendor" className='border-color' />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="A - 1 Exterminators">A - 1 Exterminators</SelectItem>
+                              <SelectItem value="A - 1 Exterminators" className="bg-white">A - 1 Exterminators</SelectItem>
                             </SelectContent>
                           </Select>
                           {formik.touched.vendor && formik.errors.vendor && (
@@ -163,7 +163,7 @@ export default function InvoiceForm({ onLogout }) {
                                 <SelectValue placeholder="Select PO Number" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="po1">PO-001</SelectItem>
+                                <SelectItem value="po1" className="bg-white">PO-001</SelectItem>
                               </SelectContent>
                             </Select>
                             {formik.touched.purchaseOrder && formik.errors.purchaseOrder && (
@@ -230,7 +230,7 @@ export default function InvoiceForm({ onLogout }) {
                               <SelectValue placeholder="Select terms" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="net30">Net 30</SelectItem>
+                              <SelectItem value="net30" className="bg-white">Net 30</SelectItem>
                             </SelectContent>
                           </Select>
                           {formik.touched.paymentTerms && formik.errors.paymentTerms && (
@@ -313,7 +313,7 @@ export default function InvoiceForm({ onLogout }) {
                               <SelectValue placeholder="Select Department" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="dept1">Department 1</SelectItem>
+                              <SelectItem value="dept1" className="bg-white">Department 1</SelectItem>
                             </SelectContent>
                           </Select>
                           {formik.touched.department && formik.errors.department && (
@@ -336,7 +336,7 @@ export default function InvoiceForm({ onLogout }) {
                               <SelectValue placeholder="Select Account" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="acc1">Account 1</SelectItem>
+                              <SelectItem value="acc1" className="bg-white">Account 1</SelectItem>
                             </SelectContent>
                           </Select>
                           {formik.touched.account && formik.errors.account && (
@@ -356,7 +356,7 @@ export default function InvoiceForm({ onLogout }) {
                               <SelectValue placeholder="Select Location" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="loc1">Location 1</SelectItem>
+                              <SelectItem value="loc1" className="bg-white">Location 1</SelectItem>
                             </SelectContent>
                           </Select>
                           {formik.touched.location && formik.errors.location && (

@@ -1,6 +1,46 @@
-import { Button } from "../../components/ui/button"
-import fileUpload from '../../assets/images/fileUpload.png'
+import { useState, useEffect, useRef } from "react";
+import { Button } from "../../components/ui/button";
+import fileUpload from '../../assets/images/fileUpload.png';
+
 export default function FileUpload() {
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // Handle file upload
+  const handleFileUpload = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const fileData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          content: reader.result, // Base64 representation of the file
+        };
+        localStorage.setItem("uploadedInvoice", JSON.stringify(fileData));
+        setUploadedFile(fileData);
+        alert("File uploaded successfully!");
+      };
+      reader.readAsDataURL(file); // Read file as a Base64 string
+    }
+  };
+
+  // Trigger file input click when button is clicked
+  const handleButtonClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Retrieve file from localStorage when component mounts
+  useEffect(() => {
+    const storedFile = localStorage.getItem("uploadedInvoice");
+    if (storedFile) {
+      setUploadedFile(JSON.parse(storedFile));
+    }
+  }, []);
+
   return (
     <div className="border border-dashed rounded-lg p-6">
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
@@ -25,15 +65,31 @@ export default function FileUpload() {
         <p className="text-sm text-muted-foreground mb-8">
           To auto-populate fields and save time
         </p>
-        <img src={fileUpload} style={{width:'250px', height:'250px'}}/>
-        <Button variant="outline" className="mb-2">
+        <img
+          src={fileUpload}
+          alt="File Upload"
+          style={{ width: "250px", height: "250px" }}
+        />
+        <input
+          type="file"
+          accept="image/*,application/pdf" // Customize accepted file types
+          onChange={handleFileUpload}
+          ref={fileInputRef}
+          className="hidden"
+        />
+        <Button variant="outline" className="mb-2" onClick={handleButtonClick}>
           Upload file
         </Button>
+        {uploadedFile && (
+          <p className="text-xs text-muted-foreground mt-4">
+            Uploaded: <strong>{uploadedFile.name}</strong> (
+            {(uploadedFile.size / 1024).toFixed(2)} KB)
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           <span className="text-color">Click to upload</span> or drag and drop
         </p>
       </div>
     </div>
-  )
+  );
 }
-
