@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { ChevronLeft, Plus } from 'lucide-react'
+import { ChevronLeft, Plus, EllipsisVertical } from 'lucide-react'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { Textarea } from '../components/ui/textarea'
@@ -66,10 +66,17 @@ export default function InvoiceForm({ onLogout }) {
 
   useEffect(() => {
     const savedData = localStorage.getItem('invoiceData')
+    console.log("savedData",savedData);
+    
     if (savedData) {
-      formik.setValues(JSON.parse(savedData))
+      const parsedData = JSON.parse(savedData);
+    console.log('Parsed Data:', parsedData);
+      formik.setValues(parsedData)
     }
   }, [])
+
+  console.log("formik.values",formik.values);
+  
 
   return (
     <div className="min-h-screen bg-background">
@@ -124,7 +131,7 @@ export default function InvoiceForm({ onLogout }) {
                               <SelectValue placeholder="Select vendor" className='border-color' />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="A - 1 Exterminators" className="bg-white">A - 1 Exterminators</SelectItem>
+                              <SelectItem value="A-1 Exterminators" className="bg-white">A-1 Exterminators</SelectItem>
                             </SelectContent>
                           </Select>
                           {formik.touched.vendor && formik.errors.vendor && (
@@ -274,7 +281,7 @@ export default function InvoiceForm({ onLogout }) {
 
                   <section className="mt-8">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold">Expense Details</h3>
+                      <h3 className="text-sm font-bold">Expense Details</h3>
                       <div className="text-sm">
                         <span>$0.00</span>
                         <span className="mx-1">/</span>
@@ -385,7 +392,7 @@ export default function InvoiceForm({ onLogout }) {
 
                 <TabsContent value="comments">
                   <section>
-                  <div className='flex gap-2 items-center'>
+                    <div className='flex gap-2 items-center'>
                       <img src={iconContainer2} />
                       <p className="text-lg font-bold">Comments</p>
                     </div>
@@ -398,15 +405,17 @@ export default function InvoiceForm({ onLogout }) {
                       <div className="text-red-500 text-sm mt-1">{formik.errors.comments}</div>
                     )}
                   </section>
+                  <div className="flex justify-end gap-3 mt-6 w-full">
+                    <EllipsisVertical  className='w-200' size={40}/>
+                    <Button variant="outline" type="button" className="border-color w-full" onClick={() => formik.resetForm()}>
+                      Save as Draft
+                    </Button>
+                    <Button type="submit" className="submit w-full">Submit & New</Button>
+                  </div>
                 </TabsContent>
               </Tabs>
 
-              <div className="flex justify-end gap-3 mt-6">
-                <Button variant="outline" type="button" className="border-color" onClick={() => formik.resetForm()}>
-                  Save as Draft
-                </Button>
-                <Button type="submit" className="submit">Submit & New</Button>
-              </div>
+
             </form>
           </div>
         </div>
